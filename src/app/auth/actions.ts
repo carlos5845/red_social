@@ -51,3 +51,27 @@ export async function signup(prevState: any, formData: FormData) {
   revalidatePath("/", "layout");
   redirect("/");
 }
+
+export async function signOut() {
+  const supabase = await supabaseServer();
+  await supabase.auth.signOut();
+  redirect("/");
+}
+
+export async function signInWithGoogle() {
+  const supabase = await supabaseServer();
+  const { data, error } = await supabase.auth.signInWithOAuth({
+    provider: "google",
+    options: {
+      redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"}/auth/callback`,
+    },
+  });
+
+  if (data.url) {
+    redirect(data.url);
+  }
+
+  if (error) {
+    return { error: error.message };
+  }
+}

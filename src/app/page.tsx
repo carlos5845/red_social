@@ -1,11 +1,20 @@
-import Image from "next/image";
-import SyncLandingPage from "./components/LandingPage"
-export default function Home() {
+import { Hero } from "@/components/Hero";
+import { supabaseServer } from "@/lib/supabase/server";
+import { redirect } from "next/navigation";
+
+export default async function Home() {
+  const supabase = await supabaseServer();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (user) {
+    redirect("/inicio");
+  }
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-       <SyncLandingPage />
-      </main>
+    <div className="min-h-screen bg-black">
+      <Hero />
     </div>
   );
 }
