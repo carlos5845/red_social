@@ -1,6 +1,6 @@
 "use client";
 
-import { Home, Search, Plus, Heart, User, Menu, LogOut } from "lucide-react";
+import { Home, Plus, User, Menu, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import {
@@ -11,6 +11,8 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { signOut } from "@/app/auth/actions";
 import { CreatePostDialog } from "./CreatePostDialog";
+import { NotificationsPopover } from "./NotificationsPopover";
+import { SearchDialog } from "./SearchDialog";
 
 interface AuthNavbarProps {
   userAvatar?: string | null;
@@ -39,13 +41,7 @@ export function AuthNavbar({ userAvatar }: AuthNavbarProps) {
           </Link>
         </Button>
 
-        <Button
-          variant="ghost"
-          size="icon"
-          className="w-10 h-10 rounded-xl hover:bg-white/5 text-zinc-400 hover:text-white"
-        >
-          <Search className="w-5 h-5" />
-        </Button>
+        <SearchDialog />
 
         <CreatePostDialog userAvatar={userAvatar}>
           <Button
@@ -57,16 +53,7 @@ export function AuthNavbar({ userAvatar }: AuthNavbarProps) {
           </Button>
         </CreatePostDialog>
 
-        <div className="relative">
-          <Button
-            variant="ghost"
-            size="icon"
-            className="w-10 h-10 rounded-xl hover:bg-white/5 text-zinc-400 hover:text-white"
-          >
-            <Heart className="w-5 h-5" />
-          </Button>
-          <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border-2 border-black"></span>
-        </div>
+        <NotificationsPopover />
 
         <Link href="/profile">
           <Button

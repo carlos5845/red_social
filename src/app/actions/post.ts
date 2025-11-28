@@ -194,3 +194,96 @@ export async function sharePost(postId: number) {
 
   return { success: true };
 }
+
+export async function createComment(postId: number, content: string) {
+  const supabase = await supabaseServer();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) return { error: "No autorizado" };
+
+  if (!content || content.trim().length === 0) {
+    return { error: "El comentario no puede estar vacío" };
+  }
+
+  const { error } = await supabase
+    .from("comments")
+    .insert({
+      post_id: postId,
+      user_id: user.id,
+      content,
+    });
+
+  if (error) {
+    return { error: error.message };
+  }
+
+  return { success: true };
+}
+
+export async function getComments(postId: number) {
+  const supabase = await supabaseServer();
+
+  const { data: comments, error } = await supabase
+    .from("comments")
+    .select(`
+      *,
+      profiles (
+        username,
+        full_name,
+        avatar_url
+      )
+    `)
+    .eq("post_id", postId)
+    .order("created_at", { ascending: true });
+
+  if (error) {
+    console.error("Error fetching comments:", error);
+    return [];
+  }
+
+  return comments;
+}
+
+export async function getPostsByUserId(userId: string) {
+  const supabase = await supabaseServer();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  const { data: posts, error } = await supabase
+    .from("posts")
+    .select(`
+      *,
+      profiles (
+        username,
+        full_name,
+        avatar_url
+      ),
+      post_images (
+        image_url
+      )
+    `)
+    .eq("user_id", userId)
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    console.error("Error fetching user posts:", error);
+    return [];
+  }
+
+  let likedPostIds: number[] = [];
+  if (user) {
+    const { data: likes } = await supabase
+      .from("post_likes")
+      .select("post_id")
+      .eq("user_id", user.id);
+    likedPostIds = likes?.map((l: any) => l.post_id) || [];
+  }
+
+  return posts.map((post) => ({
+    ...post,
+    isLiked: likedPostIds.includes(post.id),
+  }));
+}

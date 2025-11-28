@@ -1,10 +1,12 @@
 "use client";
 
-import { Heart, MessageCircle, Share2, MoreHorizontal } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Heart, MessageCircle, Share2 } from "lucide-react";
 import { useState, useEffect } from "react";
-import { toggleLike, sharePost } from "@/app/actions/post";
+import { toggleLike } from "@/app/actions/post";
 import { cn } from "@/lib/utils";
+import { ShareDialog } from "./ShareDialog";
+import { LoginPromptDialog } from "./LoginPromptDialog";
+import Link from "next/link";
 
 interface PostCardProps {
   post: {
@@ -30,7 +32,7 @@ export function PostCard({ post }: PostCardProps) {
   const [liked, setLiked] = useState(post.isLiked || false);
   const [likesCount, setLikesCount] = useState(post.likes_count || 0);
   const [sharesCount, setSharesCount] = useState(post.shares_count || 0);
-  const [isSharing, setIsSharing] = useState(false);
+  const [showLoginDialog, setShowLoginDialog] = useState(false);
 
   // Sync local state with realtime updates from props
   useEffect(() => {
@@ -39,18 +41,26 @@ export function PostCard({ post }: PostCardProps) {
   }, [post.likes_count, post.shares_count]);
 
   async function handleLike() {
+    // Optimistic update
+    const previousLiked = liked;
+    const previousLikesCount = likesCount;
+    
     const newLiked = !liked;
     setLiked(newLiked);
     setLikesCount((prev) => (newLiked ? prev + 1 : prev - 1));
-    await toggleLike(post.id);
+
+    const result = await toggleLike(post.id);
+    
+    if (result?.error === "No autorizado") {
+      // Revert optimistic update
+      setLiked(previousLiked);
+      setLikesCount(previousLikesCount);
+      setShowLoginDialog(true);
+    }
   }
 
-  async function handleShare() {
-    if (isSharing) return;
-    setIsSharing(true);
+  function handleShareSuccess() {
     setSharesCount((prev) => prev + 1);
-    await sharePost(post.id);
-    setIsSharing(false);
   }
 
   return (
@@ -114,20 +124,25 @@ export function PostCard({ post }: PostCardProps) {
           </span>
         </button>
 
-        <div className="flex items-center gap-1 group cursor-pointer">
+        <Link href={`/post/${post.id}`} className="flex items-center gap-1 group cursor-pointer">
           <MessageCircle className="w-4 h-4 text-zinc-600 group-hover:text-white transition-colors" />
           <span className="text-xs text-zinc-600 group-hover:text-white transition-colors">{post.comments_count || 0}</span>
-        </div>
+        </Link>
 
-        <button 
-          onClick={handleShare}
-          disabled={isSharing}
-          className="flex items-center gap-1 group cursor-pointer focus:outline-none disabled:opacity-50"
-        >
-          <Share2 className="w-4 h-4 text-zinc-600 group-hover:text-green-500 transition-colors" />
-          <span className="text-xs text-zinc-600 group-hover:text-green-500 transition-colors">{sharesCount}</span>
-        </button>
+        <ShareDialog postId={post.id} onShare={handleShareSuccess}>
+          <button 
+            className="flex items-center gap-1 group cursor-pointer focus:outline-none"
+          >
+            <Share2 className="w-4 h-4 text-zinc-600 group-hover:text-green-500 transition-colors" />
+            <span className="text-xs text-zinc-600 group-hover:text-green-500 transition-colors">{sharesCount}</span>
+          </button>
+        </ShareDialog>
       </div>
+
+      <LoginPromptDialog 
+        open={showLoginDialog} 
+        onOpenChange={setShowLoginDialog} 
+      />
     </div>
   );
 }
