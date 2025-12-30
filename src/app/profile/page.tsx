@@ -1,7 +1,6 @@
 import { supabaseServer } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import { ProfileEditDialog } from "@/components/ProfileEditDialog";
-import Image from "next/image";
 export default async function ProfilePage() {
   const supabase = await supabaseServer();
   const {
@@ -30,13 +29,13 @@ export default async function ProfilePage() {
         <div className="bg-zinc-900/50 border border-white/10 rounded-xl p-6 space-y-6">
           <div className="flex items-center gap-4">
             {profile?.avatar_url ? (
-              <Image
+              <img
                 src={profile.avatar_url}
                 alt="Avatar"
                 className="w-20 h-20 rounded-full border-2 border-zinc-800 object-cover"
               />
             ) : user.user_metadata?.avatar_url ? (
-              <Image
+              <img
                 src={user.user_metadata.avatar_url}
                 alt="Avatar"
                 className="w-20 h-20 rounded-full border-2 border-zinc-800"

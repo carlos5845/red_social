@@ -4,7 +4,6 @@ import { PostCard } from "@/components/PostCard";
 import { notFound } from "next/navigation";
 import { supabaseServer } from "@/lib/supabase/server";
 import { MessageButton } from "@/components/chat/MessageButton";
-import Image from "next/image";
 interface ProfilePageProps {
   params: Promise<{
     username: string;
@@ -34,7 +33,7 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
         <div className="bg-zinc-900/50 border border-white/10 rounded-xl p-6 space-y-6 mb-8">
           <div className="flex items-center gap-4">
             {profile.avatar_url ? (
-              <Image
+              <img
                 src={profile.avatar_url}
                 alt={profile.username}
                 className="w-20 h-20 rounded-full border-2 border-zinc-800 object-cover"
