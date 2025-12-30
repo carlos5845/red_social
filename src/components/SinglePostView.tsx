@@ -11,10 +11,18 @@ interface SinglePostViewProps {
 
 export function SinglePostView({ initialPost }: SinglePostViewProps) {
   const [post, setPost] = useState(initialPost);
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const supabase = createBrowserClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
   );
+
+  // Fetch current user
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      setCurrentUserId(user?.id || null);
+    });
+  }, [supabase]);
 
   useEffect(() => {
     const channel = supabase
@@ -43,7 +51,7 @@ export function SinglePostView({ initialPost }: SinglePostViewProps) {
 
   return (
     <div>
-      <PostCard post={post} />
+      <PostCard post={post} currentUserId={currentUserId || undefined} />
       <CommentSection postId={post.id} />
     </div>
   );

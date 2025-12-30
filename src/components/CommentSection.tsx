@@ -18,12 +18,20 @@ export function CommentSection({ postId }: CommentSectionProps) {
   const [content, setContent] = useState("");
   const [loading, setLoading] = useState(false);
   const [showLoginDialog, setShowLoginDialog] = useState(false);
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const formRef = useRef<HTMLFormElement>(null);
 
   const supabase = createBrowserClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
   );
+
+  // Fetch current user
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      setCurrentUserId(user?.id || null);
+    });
+  }, [supabase]);
 
   // Fetch initial comments
   useEffect(() => {
@@ -46,20 +54,37 @@ export function CommentSection({ postId }: CommentSectionProps) {
           // Fetch the full comment with profile to display
           const { data: newComment } = await supabase
             .from("comments")
-            .select(`
+            .select(
+              `
               *,
               profiles (
                 username,
                 full_name,
                 avatar_url
               )
-            `)
+            `
+            )
             .eq("id", payload.new.id)
             .single();
 
           if (newComment) {
             setComments((prev) => [...prev, newComment]);
           }
+        }
+      )
+      .on(
+        "postgres_changes",
+        {
+          event: "DELETE",
+          schema: "public",
+          table: "comments",
+          filter: `post_id=eq.${postId}`,
+        },
+        (payload) => {
+          // Remove the deleted comment from state
+          setComments((prev) =>
+            prev.filter((comment) => comment.id !== payload.old.id)
+          );
         }
       )
       .subscribe();
@@ -87,10 +112,15 @@ export function CommentSection({ postId }: CommentSectionProps) {
   return (
     <div className="mt-6 border-t border-white/5 pt-6">
       <h3 className="text-lg font-semibold text-white mb-4">Comentarios</h3>
-      
+
       <div className="space-y-4 mb-6">
         {comments.map((comment) => (
-          <CommentItem key={comment.id} comment={comment} />
+          <CommentItem
+            key={comment.id}
+            comment={comment}
+            postId={postId}
+            currentUserId={currentUserId || undefined}
+          />
         ))}
         {comments.length === 0 && (
           <p className="text-zinc-500 text-sm text-center py-4">
@@ -106,9 +136,9 @@ export function CommentSection({ postId }: CommentSectionProps) {
           placeholder="Escribe un comentario..."
           className="bg-zinc-900 border-white/10 text-white min-h-[40px] resize-none"
         />
-        <Button 
-          type="submit" 
-          size="icon" 
+        <Button
+          type="submit"
+          size="icon"
           disabled={loading || !content.trim()}
           className="bg-white text-black hover:bg-zinc-200"
         >
@@ -116,9 +146,9 @@ export function CommentSection({ postId }: CommentSectionProps) {
         </Button>
       </form>
 
-      <LoginPromptDialog 
-        open={showLoginDialog} 
-        onOpenChange={setShowLoginDialog} 
+      <LoginPromptDialog
+        open={showLoginDialog}
+        onOpenChange={setShowLoginDialog}
       />
     </div>
   );

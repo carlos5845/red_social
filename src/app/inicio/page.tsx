@@ -2,9 +2,11 @@ import { Dashboard } from "@/components/Dashboard";
 import { supabaseServer } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import { getPosts } from "@/app/actions/post";
+import { FloatingChatButton } from "@/components/chat/FloatingChatButton";
 
 export default async function InicioPage() {
   const supabase = await supabaseServer();
+
   const {
     data: { user },
   } = await supabase.auth.getUser();
@@ -28,6 +30,7 @@ export default async function InicioPage() {
   return (
     <div className="pt-16">
       <Dashboard posts={posts} userAvatar={userAvatar} />
+      <FloatingChatButton />
     </div>
   );
 }

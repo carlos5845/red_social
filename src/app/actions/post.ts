@@ -287,3 +287,51 @@ export async function getPostsByUserId(userId: string) {
     isLiked: likedPostIds.includes(post.id),
   }));
 }
+
+export async function deletePost(postId: number) {
+  const supabase = await supabaseServer();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) return { error: "No autorizado" };
+
+  // Hard delete: physically remove the post
+  // Cascade will handle dependent records (images, comments, likes)
+  const { error } = await supabase
+    .from("posts")
+    .delete()
+    .eq("id", postId)
+    .eq("user_id", user.id);
+
+  if (error) {
+    return { error: error.message };
+  }
+
+  revalidatePath("/inicio");
+  revalidatePath("/profile/[username]", "page");
+  return { success: true };
+}
+
+export async function deleteComment(commentId: number, postId: number) {
+  const supabase = await supabaseServer();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) return { error: "No autorizado" };
+
+  // Physical delete (trigger will update comments_count)
+  const { error } = await supabase
+    .from("comments")
+    .delete()
+    .eq("id", commentId)
+    .eq("user_id", user.id);
+
+  if (error) {
+    return { error: error.message };
+  }
+
+  revalidatePath(`/post/${postId}`);
+  return { success: true };
+}

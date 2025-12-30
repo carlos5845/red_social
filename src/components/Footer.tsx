@@ -3,33 +3,21 @@ import Link from "next/link";
 export function Footer() {
   return (
     <footer className="border-t border-white/5 pt-16 pb-8 bg-black">
-      <div className="max-w-6xl mx-auto px-6 grid grid-cols-2 md:grid-cols-4 gap-8 mb-16">
-        <div className="col-span-2 md:col-span-1">
-          <Link href="/" className="text-white font-semibold text-lg flex items-center gap-2 mb-4">
-            <div className="w-4 h-4 bg-white rounded-full flex items-center justify-center">
-              <div className="w-1.5 h-1.5 bg-black rounded-full"></div>
-            </div>
-            SYNC
-          </Link>
-          <p className="text-xs text-zinc-500 leading-relaxed">
-            Diseñado en California.
-            <br />
-            Construido para el mundo.
-          </p>
+      <div className=" w-full border-t border-white/5 bg-background-dark py-4 z-20">
+        <div className="layout-container px-6 md:px-12 flex justify-between items-center text-xs text-neutral-600">
+          <span>© 2024 Platinum Social Inc.</span>
+          <div className="flex gap-6">
+            <a className="hover:text-white transition-colors" href="#">
+              Privacidad
+            </a>
+            <a className="hover:text-white transition-colors" href="#">
+              Términos
+            </a>
+            <a className="hover:text-white transition-colors" href="#">
+              Contacto
+            </a>
+          </div>
         </div>
-
-        <FooterColumn
-          title="Producto"
-          links={["Características", "Integraciones", "Precios", "Changelog"]}
-        />
-        <FooterColumn
-          title="Empresa"
-          links={["Sobre Nosotros", "Blog", "Carreras", "Marca"]}
-        />
-        <FooterColumn
-          title="Legal"
-          links={["Privacidad", "Términos", "Cookies", "Licencias"]}
-        />
       </div>
     </footer>
   );

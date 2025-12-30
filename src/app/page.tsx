@@ -1,7 +1,7 @@
 import { Hero } from "@/components/Hero";
 import { supabaseServer } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
-
+import PlatinumSocialHero from "@/components/hero2";
 export default async function Home() {
   const supabase = await supabaseServer();
   const {
@@ -14,7 +14,7 @@ export default async function Home() {
 
   return (
     <div className="min-h-screen bg-black">
-      <Hero />
+      <PlatinumSocialHero />
     </div>
   );
 }
